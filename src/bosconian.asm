@@ -25,10 +25,10 @@ VERA_mode = %00010001
 ; 128 x 128 tile map, 16 color mode, 1bpp
 VERA_tile_layer0_config = %10100000 
 
-tiles:
-.include "tiles.inc"
-end_tiles:
-TILES_SIZE = end_tiles-tiles
+tiles_filename:
+.byte "tiles.bin"
+end_tiles_filename:
+TILES_FILENAME_LENGTH = end_tiles_filename - tiles_filename
 
 layer_0_map:
 .byte $00,$00,$01,$01,$02,$02,$03,$03
@@ -60,21 +60,39 @@ start:
    lda #(VRAM_tiles >> 9) 
    sta VERA_L0_tilebase
 
+   ; load tile definitions to VRAM
+   
+   ; load sprite frames
+   lda #1 ; logical number
+   ldx #8 ; device number (SD Card / emulator host FS)
+   ldy #0 ; secondary address (0 = ignore file header)
+   jsr SETLFS
+   lda #(TILES_FILENAME_LENGTH)
+   ldx #<tiles_filename
+   ldy #>tiles_filename
+   jsr SETNAM
+  ;  lda #(^VRAM_tiles + 2) ; VRAM bank + 2
+   lda #(^VRAM_tiles+2) ; VRAM bank + 2
+   ldx #<VRAM_tiles
+   ldy #>VRAM_tiles
+   jsr LOAD
+
+   ;RAM2VRAM tiles, VRAM_tiles, TILES_SIZE
+
    ;; reset scroll
-   ; stz VERA_L0_hscroll_l ; horizontal scroll = 0
-   ; stz VERA_L0_hscroll_h
-   ; stz VERA_L0_vscroll_l ; vertical scroll = 0
-   ; stz VERA_L0_vscroll_h
+   stz VERA_L0_hscroll_l ; horizontal scroll = 0
+   stz VERA_L0_hscroll_h
+   stz VERA_L0_vscroll_l ; vertical scroll = 0
+   stz VERA_L0_vscroll_h
+
+   ; load layer 0 map to VRAM
+   RAM2VRAM layer_0_map, VRAM_layer0_map, L0_MAP_SIZE
 
    ; reenable display
    lda #VERA_mode
    sta VERA_dc_video
 
-   ; load tile definitions to VRAM
-   RAM2VRAM tiles, VRAM_tiles, TILES_SIZE
 
-   ; load layer 0 map to VRAM
-   RAM2VRAM layer_0_map, VRAM_layer0_map, L0_MAP_SIZE
 
 @done:
    rts
