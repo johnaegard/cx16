@@ -22,6 +22,8 @@ start:
    sta VERA_dc_hscale
    sta VERA_dc_vscale
 
+   ; activate layer 0, set for 8x8 1-bit tiles.
+
    ; force uppercase
    lda #UPPERCASE
    jsr CHROUT
