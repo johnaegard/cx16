@@ -25,7 +25,7 @@ VERA_mode_just_layer0_enabled = %00010001
 ; 128 x 128 tile map
 ; 16 color mode
 ; 1bpp 
-VERA_tile_layer0_config = %10100000
+VERA_tile_layer0_config = %10100001
 
 start:
 
