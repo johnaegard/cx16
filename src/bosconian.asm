@@ -18,11 +18,12 @@ DOUBLE_WIDE_PIXELS = $40
 start:
 
    ; set resolution to 320x240
-   lda #64
+   lda #DOUBLE_WIDE_PIXELS
    sta VERA_dc_hscale
    sta VERA_dc_vscale
 
    ; activate layer 0, set for 8x8 1-bit tiles.
+   ; deactivate layer 1
 
    ; force uppercase
    lda #UPPERCASE
