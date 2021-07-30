@@ -283,14 +283,14 @@ FETVec         := $03AF
       sta VERA_addr_low
        ; ZP pointer = start of video data in CPU RAM
       lda #<ram_addr
-      sta ZP_PTR
+      sta ZP_PTR_1
       lda #>ram_addr
-      sta ZP_PTR+1
+      sta ZP_PTR_1+1
       ; use index pointers to compare with number of bytes to copy
       ldx #0
       ldy #0
    vram_loop:
-      lda (ZP_PTR),y
+      lda (ZP_PTR_1),y
       sta VERA_data0
       iny
       cpx #>num_bytes ; last page yet?
@@ -298,7 +298,7 @@ FETVec         := $03AF
       cpy #0
       bne vram_loop ; not on last page, Y non-zero
       inx ; next page
-      inc ZP_PTR+1
+      inc ZP_PTR_1+1
       bra vram_loop
    check_end:
       cpy #<num_bytes ; last byte of last page?
