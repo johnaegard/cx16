@@ -1,6 +1,7 @@
-* scroll horizontally / verticallly and verify that flipping happens smoothly uh-oh how to do 16-bit math????????
+x scroll horizontally / verticallly and verify that flipping happens smoothly uh-oh how to do 16-bit math????????
 * twinkle twinkle
 * joystick controls
 * 8-way sprite 
 * 16-way sprite
-* second layer
+x second layer
+* vload macro
