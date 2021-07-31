@@ -11,9 +11,10 @@
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
 
-VRAM_tiles        = $00000
-VRAM_layer0_map   = $00800
-VRAM_layer1_map   = $08800
+VRAM_tiles                   = $00000
+VRAM_layer0_map              = $00800
+VRAM_layer0_map_color_base   = $00801
+VRAM_layer1_map_color_base   = $08800
 
 ;
 ; VERA CONFIGS
@@ -45,7 +46,6 @@ l0_move: .byte 0
 L0_DELAY = 2
 
 start:
-
    ; resolution
    lda #VERA_pixel_scale
    sta VERA_dc_hscale
@@ -144,6 +144,29 @@ start:
    cli ; enable IRQ now that vector is properly set
 
 @main_loop:
+   jsr ENTROPY_GET
+   ; use a and x entropy to choose sparkle coord, place it in word starting at ZP_PTR_1
+   stx ZP_PTR_1
+   lsr a
+   lsr a
+   sta ZP_PTR_1 + 1
+
+   ; use y entropy to make d16 color roll
+   
+   sty ZP_PTR_2
+
+
+   ; add base tilemap color addr 
+   lda ZP_PTR_1
+   clc
+   adc #<VRAM_layer0_map_color_base
+   sta VERA_addr_low
+   lda ZP_PTR_1 + 1
+   adc #>VRAM_layer0_map_color_base
+   sta VERA_addr_high
+   stz VERA_addr_bank
+
+
    wai
    ; do nothing in main loop, just let ISR do everything
    bra @main_loop
