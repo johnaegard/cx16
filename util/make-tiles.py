@@ -13,7 +13,7 @@ for px_row in range(0,8):
         buffer.append(0)
 
 # blank tile
-for zeros in range(0,8):
+for zeros in range(0,16):
   buffer.append(0)
 
 f.write(bytearray(buffer))

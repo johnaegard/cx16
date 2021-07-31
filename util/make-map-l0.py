@@ -6,8 +6,10 @@ MAP_TRUE_WIDTH = 128
 MAP_TRUE_HEIGHT = 128
 MAP_WIDTH = 120
 MAP_HEIGHT = 90
-NUM_TILES = 65
+NUM_NONBLANK_TILES = 64
 NUM_COLORS = 16
+BLANK_TILE_RATE = 0.77
+BLANK_TILE_INDEX = 64
 
 def in_northwest(col,row):
   return col < 40 and row < 30
@@ -27,11 +29,17 @@ def tile_coord(col,row):
 def color_coord(col,row):
   return 2 * (row * MAP_TRUE_WIDTH + col) +1 
 
+def random_tile(): 
+  if random.random() < BLANK_TILE_RATE:
+    return BLANK_TILE_INDEX
+  else:
+    return random.randrange(0,NUM_NONBLANK_TILES)
+
 buffer = [255] * (MAP_TRUE_HEIGHT * MAP_TRUE_WIDTH * 2)
 
 for col in range(0,MAP_WIDTH):
   for row in range(0,MAP_HEIGHT):
-    tile_index = random.randrange(0,NUM_TILES)
+    tile_index = random_tile()
     color = random.randrange(0,NUM_COLORS)
     if in_northwest(col,row):
       buffer[tile_coord(col,row)] = tile_index         # NORTHWEST TILE

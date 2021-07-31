@@ -35,6 +35,10 @@ tilemap0_filename:
 end_tilemap0_filename:
 TILEMAP0_FILENAME_LENGTH = end_tilemap0_filename - tilemap0_filename
 
+; TILEMAP CONFIGS
+X_FLIP = 640
+Y_FLIP = 480
+
 start:
 
    ; resolution
@@ -85,7 +89,7 @@ start:
    ldy #>VRAM_layer0_map
    jsr LOAD
 
-   ;; reset scroll
+   ; reset scroll
    stz VERA_L0_hscroll_l ; horizontal scroll = 0
    stz VERA_L0_hscroll_h
    stz VERA_L0_vscroll_l ; vertical scroll = 0
@@ -95,7 +99,7 @@ start:
    lda #VERA_mode
    sta VERA_dc_video
 
-
+   # uh how to do 16-bit arithmetic???????
 
 @done:
    rts
