@@ -1,8 +1,7 @@
-x scroll horizontally / verticallly and verify that flipping happens smoothly
-* vsync-driven updates
-* twinkle twinkle
-* joystick controls
-* 8-way sprite 
-* 16-way sprite
-x second layer
-* vload macro
+X scroll horizontally / verticallly and verify that flipping happens smoothly
+X second layer
+X vsync-interrupt driven updates
+o twinkle twinkle
+o 16-way sprite
+o joystick controls
+o vload macro

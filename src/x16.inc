@@ -115,6 +115,8 @@ RAM_BANK          = $9F61
 YM_reg            = $9FE0
 YM_data           = $9FE1
 
+VSYNC_BIT         = $01
+
 ; Emulator Registers
 GIF_ctrl          = $9FB5
 

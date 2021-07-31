@@ -40,25 +40,9 @@ tilemap1_filename:
 end_tilemap1_filename:
 TILEMAP1_FILENAME_LENGTH = end_tilemap1_filename - tilemap1_filename
 
-; TILEMAP CONFIGS
-X_FLIP = 640
-Y_FLIP = 480
-PER_FRAME_DELAY = 65536 / 4
-
-; TILEMAP VARS
-tilemap_l0_x:
-.word 0
-tilemap_l0_y:
-.word 0
-tilemap_l0_speed:
-.word 1
-
-tilemap_l1_x:
-.word 0
-tilemap_l1_y:
-.word 0
-tilemap_l1_speed:
-.word 2
+default_irq_vector: .addr 0
+l0_move: .byte 0
+L0_DELAY = 2
 
 start:
 
@@ -129,6 +113,10 @@ start:
    ldy #>VRAM_layer1_map
    jsr LOAD
 
+   ; initialize parallax counter
+   lda #L0_DELAY
+   sta l0_move
+
    ; reset scroll
    stz VERA_L0_hscroll_l ; horizontal scroll = 0
    stz VERA_L0_hscroll_h
@@ -139,43 +127,60 @@ start:
    lda #VERA_mode
    sta VERA_dc_video
 
-scroll:
-   lda tilemap_l0_x
+   ; backup default RAM IRQ vector
+   lda IRQVec
+   sta default_irq_vector
+   lda IRQVec+1
+   sta default_irq_vector+1
+
+   ; overwrite RAM IRQ vector with custom handler address
+   sei ; disable IRQ while vector is changing
+   lda #<custom_irq_handler
+   sta IRQVec
+   lda #>custom_irq_handler
+   sta IRQVec+1
+   lda #VSYNC_BIT ; make VERA only generate VSYNC IRQs
+   sta VERA_ien
+   cli ; enable IRQ now that vector is properly set
+
+@main_loop:
+   wai
+   ; do nothing in main loop, just let ISR do everything
+   bra @main_loop
+   ; never return, just wait for resetc
+
+custom_irq_handler:
+   lda VERA_isr
+   and #VSYNC_BIT
+   beq @continue ; non-VSYNC IRQ, no tick update
+
+   ; scroll layer 1
+   lda VERA_L1_hscroll_l
    clc
-   adc tilemap_l0_speed
-   sta tilemap_l0_x
-
-   lda tilemap_l0_x+1
-   adc tilemap_l0_speed +1
-   sta tilemap_l0_x+1
-
-   sta VERA_L0_hscroll_h
-   lda tilemap_l0_x
-   sta VERA_L0_hscroll_l
-
-   lda tilemap_l1_x
-   clc
-   adc tilemap_l1_speed
-   sta tilemap_l1_x
-
-   lda tilemap_l1_x+1
-   adc tilemap_l1_speed +1
-   sta tilemap_l1_x+1
-
-   sta VERA_L1_hscroll_h
-   lda tilemap_l1_x
+   adc #1
    sta VERA_L1_hscroll_l
+   lda VERA_L1_hscroll_h
+   adc #0
+   sta VERA_L1_hscroll_h
 
-   ldy #>PER_FRAME_DELAY
-   delay_outer:
-      ldx #<PER_FRAME_DELAY
-      delay_inner:
-         dex
-         bne delay_inner
-      dey
-      bne delay_outer
+   ; handle parallax delay
+   dec l0_move
+   bne @continue ; sky_move non-zero, don't scroll sky
 
-   jmp scroll
+   ; scroll layer 0
+   lda VERA_L0_hscroll_l
+   clc
+   adc #1
+   sta VERA_L0_hscroll_l
+   lda VERA_L0_hscroll_h
+   adc #0
+   sta VERA_L0_hscroll_h
 
-@done:
-   rts
+   ; reset parallax counter
+   lda #L0_DELAY
+   sta l0_move
+
+@continue:
+   ; continue to default IRQ handler
+   jmp (default_irq_vector)
+   ; RTI will happen after jump
