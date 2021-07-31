@@ -159,9 +159,11 @@ custom_irq_handler:
    clc
    adc #1
    sta VERA_L1_hscroll_l
+   sta VERA_L1_vscroll_l
    lda VERA_L1_hscroll_h
    adc #0
    sta VERA_L1_hscroll_h
+   sta VERA_L1_vscroll_h
 
    ; handle parallax delay
    dec l0_move
@@ -172,9 +174,11 @@ custom_irq_handler:
    clc
    adc #1
    sta VERA_L0_hscroll_l
+   sta VERA_L0_vscroll_l
    lda VERA_L0_hscroll_h
    adc #0
    sta VERA_L0_hscroll_h
+   sta VERA_L0_vscroll_h
 
    ; reset parallax counter
    lda #L0_DELAY

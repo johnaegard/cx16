@@ -2,6 +2,9 @@ X scroll horizontally / verticallly and verify that flipping happens smoothly
 X second layer
 X vsync-interrupt driven updates
 o twinkle twinkle
+  o consider 64x64 map here.
 o 16-way sprite
+  o 16x16, ? colors
+  o how to draw this and modify it?
 o joystick controls
 o vload macro
