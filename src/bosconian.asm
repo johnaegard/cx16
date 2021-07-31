@@ -30,13 +30,10 @@ tiles_filename:
 end_tiles_filename:
 TILES_FILENAME_LENGTH = end_tiles_filename - tiles_filename
 
-layer_0_map:
-.byte $00,$00,$01,$01,$02,$02,$03,$03
-.byte $04,$04,$05,$05,$06,$06,$07,$07
-.byte $08,$08,$09,$09,$0A,$0A,$0B,$0B
-.byte $0C,$0C,$0D,$0D,$0E,$0E,$0F,$0F
-end_layer_0_map:
-L0_MAP_SIZE = end_layer_0_map - layer_0_map
+tilemap0_filename:
+.byte "tilemap0.bin"
+end_tilemap0_filename:
+TILEMAP0_FILENAME_LENGTH = end_tilemap0_filename - tilemap0_filename
 
 start:
 
@@ -61,8 +58,6 @@ start:
    sta VERA_L0_tilebase
 
    ; load tile definitions to VRAM
-   
-   ; load sprite frames
    lda #1 ; logical number
    ldx #8 ; device number (SD Card / emulator host FS)
    ldy #0 ; secondary address (0 = ignore file header)
@@ -71,22 +66,30 @@ start:
    ldx #<tiles_filename
    ldy #>tiles_filename
    jsr SETNAM
-  ;  lda #(^VRAM_tiles + 2) ; VRAM bank + 2
    lda #(^VRAM_tiles+2) ; VRAM bank + 2
    ldx #<VRAM_tiles
    ldy #>VRAM_tiles
    jsr LOAD
 
-   ;RAM2VRAM tiles, VRAM_tiles, TILES_SIZE
+   ; load tilemap for layer 0 into VRAM .... this should be a macro
+   lda #1 ; logical number
+   ldx #8 ; device number (SD Card / emulator host FS)
+   ldy #0 ; secondary address (0 = ignore file header)
+   jsr SETLFS
+   lda #(TILEMAP0_FILENAME_LENGTH)
+   ldx #<tilemap0_filename
+   ldy #>tilemap0_filename
+   jsr SETNAM
+   lda #(^VRAM_layer0_map+2) ; VRAM bank + 2
+   ldx #<VRAM_layer0_map
+   ldy #>VRAM_layer0_map
+   jsr LOAD
 
    ;; reset scroll
    stz VERA_L0_hscroll_l ; horizontal scroll = 0
    stz VERA_L0_hscroll_h
    stz VERA_L0_vscroll_l ; vertical scroll = 0
    stz VERA_L0_vscroll_h
-
-   ; load layer 0 map to VRAM
-   RAM2VRAM layer_0_map, VRAM_layer0_map, L0_MAP_SIZE
 
    ; reenable display
    lda #VERA_mode
