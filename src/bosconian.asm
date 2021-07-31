@@ -14,7 +14,7 @@
 VRAM_tiles                   = $00000
 VRAM_layer0_map              = $00800
 VRAM_layer0_map_color_base   = $00801
-VRAM_layer1_map_color_base   = $08800
+VRAM_layer1_map              = $08800
 
 ;
 ; VERA CONFIGS
@@ -24,7 +24,9 @@ VERA_pixel_scale = $40
 ; enable both layers + sprites
 VERA_mode = %00110001
 ; 128 x 128 tile map, 16 color mode, 1bpp
-VERA_tile_layer0_config = %10100000 
+VERA_tile_layer0_config = %10100000
+; USE CHANNEL 0 for input
+VERA_channel = %11111110
 
 tiles_filename:
 .byte "tiles.bin"
@@ -46,6 +48,11 @@ l0_move: .byte 0
 L0_DELAY = 2
 
 start:
+   ; channel select
+   lda VERA_ctrl
+   and #VERA_channel
+   sta VERA_ctrl
+
    ; resolution
    lda #VERA_pixel_scale
    sta VERA_dc_hscale
@@ -147,16 +154,22 @@ start:
    jsr ENTROPY_GET
    ; use a and x entropy to choose sparkle coord, place it in word starting at ZP_PTR_1
    stx ZP_PTR_1
-   lsr a
-   lsr a
+   lsr
+   lsr
    sta ZP_PTR_1 + 1
 
-   ; use y entropy to make d16 color roll
-   
+   ; use y entropy to make d16 color roll and put in ZP_PTR_2
+   tya
+   lsr
+   lsr
+   lsr
+   lsr
    sty ZP_PTR_2
+   eor ZP_PTR_2
+   and #7
+   sta ZP_PTR_2
 
-
-   ; add base tilemap color addr 
+   ; add base tilemap color addr to twinkle coord
    lda ZP_PTR_1
    clc
    adc #<VRAM_layer0_map_color_base
@@ -164,10 +177,8 @@ start:
    lda ZP_PTR_1 + 1
    adc #>VRAM_layer0_map_color_base
    sta VERA_addr_high
-   stz VERA_addr_bank
-
-
-   wai
+   lda ZP_PTR_2
+   sta VERA_data0
    ; do nothing in main loop, just let ISR do everything
    bra @main_loop
    ; never return, just wait for resetc
