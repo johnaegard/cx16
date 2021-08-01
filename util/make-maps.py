@@ -2,8 +2,8 @@
 
 import random
 
-MAP_TRUE_WIDTH = 128
-MAP_TRUE_HEIGHT = 128
+MAP_TRUE_WIDTH = 64
+MAP_TRUE_HEIGHT = 64
 NUM_NONBLANK_TILES = 64
 NUM_COLORS = 16
 BLANK_TILE_RATE_L0 = 0.90
@@ -31,11 +31,11 @@ def make_map(blank_tile_rate):
   return buffer
 
 l0_buffer = make_map(BLANK_TILE_RATE_L0)
-f = open("TILEMAP0.BIN", "wb")
+f = open("MAP0.BIN", "wb")
 f.write(bytearray(l0_buffer))
 f.close()
 
 l1_buffer = make_map(BLANK_TILE_RATE_L1)
-f = open("TILEMAP1.BIN", "wb")
+f = open("MAP1.BIN", "wb")
 f.write(bytearray(l1_buffer))
 f.close()

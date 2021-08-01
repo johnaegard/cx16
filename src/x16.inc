@@ -308,5 +308,19 @@ FETVec         := $03AF
    .endscope
 .endmacro
 
+.macro VRAM_LOAD_FILE filename, filename_length, vram_addr 
+   lda #1 ; logical number
+   ldx #8 ; device number (SD Card / emulator host FS)
+   ldy #0 ; secondary address (0 = ignore file header)
+   jsr SETLFS
+   lda #(filename_length)
+   ldx #<filename
+   ldy #>filename
+   jsr SETNAM
+   lda #(^vram_addr+2) ; VRAM bank + 2
+   ldx #<vram_addr
+   ldy #>vram_addr
+   jsr LOAD
+.endmacro
 
 .endif

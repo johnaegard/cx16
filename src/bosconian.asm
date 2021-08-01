@@ -11,10 +11,11 @@
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
 
-VRAM_tiles                   = $00000
-VRAM_layer0_map              = $00800
-VRAM_layer0_map_color_base   = $00801
-VRAM_layer1_map              = $08800
+VRAM_layer0_map              = $00000
+VRAM_layer0_map_color_base   = $00001
+VRAM_layer1_map              = $02000
+VRAM_layer1_map_color_base   = $02001
+VRAM_tiles                   = $04000
 
 ;
 ; VERA CONFIGS
@@ -23,8 +24,8 @@ VRAM_layer1_map              = $08800
 VERA_pixel_scale = $40
 ; enable both layers + sprites
 VERA_mode = %00110001
-; 128 x 128 tile map, 16 color mode, 1bpp
-VERA_tile_layer0_config = %10100000
+; 64 x 64 tile map, 16 color mode, 1bpp
+VERA_tile_config = %01010000
 ; USE CHANNEL 0 for input
 VERA_channel = %11111110
 
@@ -34,12 +35,12 @@ end_tiles_filename:
 TILES_FILENAME_LENGTH = end_tiles_filename - tiles_filename
 
 tilemap0_filename:
-.byte "tilemap0.bin"
+.byte "map0.bin"
 end_tilemap0_filename:
 TILEMAP0_FILENAME_LENGTH = end_tilemap0_filename - tilemap0_filename
 
 tilemap1_filename:
-.byte "tilemap1.bin"
+.byte "map1.bin"
 end_tilemap1_filename:
 TILEMAP1_FILENAME_LENGTH = end_tilemap1_filename - tilemap1_filename
 
@@ -61,9 +62,10 @@ start:
    ; disable display during setup
    stz VERA_dc_video
 
-   ; configure layer 0
-   lda #VERA_tile_layer0_config
+   ; configure layers
+   lda #VERA_tile_config
    sta VERA_L0_config
+   sta VERA_L1_config
 
    ; configure location of map 0 in vram
    lda #(VRAM_layer0_map >> 9)
@@ -73,61 +75,24 @@ start:
    lda #(VRAM_layer1_map >> 9)
    sta VERA_L1_mapbase
 
-   ; configure location of tiles in vram and set to 8x8
-   lda #(VRAM_tiles >> 9) 
+   ; configure location of tiles in vram and set tilesize to 8x8
+   lda #((VRAM_tiles >> 9) & %11111100)
    sta VERA_L0_tilebase
    sta VERA_L1_tilebase
 
    ; load tile definitions to VRAM
-   lda #1 ; logical number
-   ldx #8 ; device number (SD Card / emulator host FS)
-   ldy #0 ; secondary address (0 = ignore file header)
-   jsr SETLFS
-   lda #(TILES_FILENAME_LENGTH)
-   ldx #<tiles_filename
-   ldy #>tiles_filename
-   jsr SETNAM
-   lda #(^VRAM_tiles+2) ; VRAM bank + 2
-   ldx #<VRAM_tiles
-   ldy #>VRAM_tiles
-   jsr LOAD
-
-   ; load tilemap for layer 0 into VRAM .... this should be a macro
-   lda #1 ; logical number
-   ldx #8 ; device number (SD Card / emulator host FS)
-   ldy #0 ; secondary address (0 = ignore file header)
-   jsr SETLFS
-   lda #(TILEMAP0_FILENAME_LENGTH)
-   ldx #<tilemap0_filename
-   ldy #>tilemap0_filename
-   jsr SETNAM
-   lda #(^VRAM_layer0_map+2) ; VRAM bank + 2
-   ldx #<VRAM_layer0_map
-   ldy #>VRAM_layer0_map
-   jsr LOAD
-
-   ; load tilemap for layer 1 into VRAM .... this should be a macro
-   lda #1 ; logical number
-   ldx #8 ; device number (SD Card / emulator host FS)
-   ldy #0 ; secondary address (0 = ignore file header)
-   jsr SETLFS
-   lda #(TILEMAP1_FILENAME_LENGTH)
-   ldx #<tilemap1_filename
-   ldy #>tilemap1_filename
-   jsr SETNAM
-   lda #(^VRAM_layer1_map+2) ; VRAM bank + 2
-   ldx #<VRAM_layer1_map
-   ldy #>VRAM_layer1_map
-   jsr LOAD
+   VRAM_LOAD_FILE tiles_filename, TILES_FILENAME_LENGTH, VRAM_tiles
+   VRAM_LOAD_FILE tilemap0_filename, TILEMAP0_FILENAME_LENGTH, VRAM_layer0_map
+   VRAM_LOAD_FILE tilemap1_filename, TILEMAP1_FILENAME_LENGTH, VRAM_layer1_map
 
    ; initialize parallax counter
    lda #L0_DELAY
    sta l0_move
 
    ; reset scroll
-   stz VERA_L0_hscroll_l ; horizontal scroll = 0
+   stz VERA_L0_hscroll_l 
    stz VERA_L0_hscroll_h
-   stz VERA_L0_vscroll_l ; vertical scroll = 0
+   stz VERA_L0_vscroll_l 
    stz VERA_L0_vscroll_h
 
    ; reenable display
@@ -151,37 +116,10 @@ start:
    cli ; enable IRQ now that vector is properly set
 
 @main_loop:
-   jsr ENTROPY_GET
-   ; use a and x entropy to choose sparkle coord, place it in word starting at ZP_PTR_1
-   stx ZP_PTR_1
-   lsr
-   lsr
-   sta ZP_PTR_1 + 1
-
-   ; use y entropy to make d16 color roll and put in ZP_PTR_2
-   tya
-   lsr
-   lsr
-   lsr
-   lsr
-   sty ZP_PTR_2
-   eor ZP_PTR_2
-   and #7
-   sta ZP_PTR_2
-
-   ; add base tilemap color addr to twinkle coord
-   lda ZP_PTR_1
-   clc
-   adc #<VRAM_layer0_map_color_base
-   sta VERA_addr_low
-   lda ZP_PTR_1 + 1
-   adc #>VRAM_layer0_map_color_base
-   sta VERA_addr_high
-   lda ZP_PTR_2
-   sta VERA_data0
    ; do nothing in main loop, just let ISR do everything
-   bra @main_loop
+   wai
    ; never return, just wait for resetc
+   bra @main_loop
 
 custom_irq_handler:
    lda VERA_isr
