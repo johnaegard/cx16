@@ -8,6 +8,8 @@
 
    jmp start
 
+TWINKLE_STARS_PER_LOOP = 70
+
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
 
@@ -16,6 +18,11 @@ VRAM_layer0_map_color_base   = $00001
 VRAM_layer1_map              = $02000
 VRAM_layer1_map_color_base   = $02001
 VRAM_tiles                   = $04000
+
+ZP_TWINKLE_COORD_L = ZP_PTR_1
+ZP_TWINKLE_COORD_H = ZP_PTR_1 + 1
+ZP_TWINKLE_COLOR = ZP_PTR_2
+ZP_TWINKLE_COUNT = ZP_PTR_3
 
 ;
 ; VERA CONFIGS
@@ -115,11 +122,49 @@ start:
    sta VERA_ien
    cli ; enable IRQ now that vector is properly set
 
-@main_loop:
-   ; do nothing in main loop, just let ISR do everything
+
+   stz ZP_TWINKLE_COUNT
+@twinkle:
+   jsr ENTROPY_GET
+   ; use (a concat x) entropy for 14-bit sparkle coord covering both tile maps and place it in ZP
+   stx ZP_TWINKLE_COORD_L
+   lsr
+   lsr
+   sta ZP_TWINKLE_COORD_H
+   lda ZP_TWINKLE_COORD_L      
+   and #%11111110            ; zero out the final bit of the twinkle coord to force it even
+   sta ZP_TWINKLE_COORD_L
+
+   ; use y entropy to make d16 color roll and put in ZP_PTR_2
+   tya
+   lsr
+   lsr
+   lsr
+   lsr
+;   sty ZP_TWINKLE_COLOR
+;   eor ZP_TWINKLE_COLOR
+   and #7
+   sta ZP_TWINKLE_COLOR
+   
+   lda ZP_TWINKLE_COORD_L
+   clc
+   adc #<VRAM_layer0_map_color_base
+   sta VERA_addr_low
+   lda ZP_TWINKLE_COORD_H
+   adc #>VRAM_layer0_map_color_base
+   sta VERA_addr_high
+   lda ZP_TWINKLE_COLOR
+   sta VERA_data0
+
+   inc ZP_TWINKLE_COUNT
+   lda ZP_TWINKLE_COUNT
+   cmp #TWINKLE_STARS_PER_LOOP
+   beq @done_twinkling
+   bra @twinkle
+@done_twinkling:
+   stz ZP_TWINKLE_COUNT
    wai
-   ; never return, just wait for resetc
-   bra @main_loop
+   bra @twinkle
 
 custom_irq_handler:
    lda VERA_isr
