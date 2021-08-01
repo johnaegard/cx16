@@ -8,7 +8,7 @@
 
    jmp start
 
-TWINKLE_STARS_PER_LOOP = 70
+TWINKLE_STARS_PER_LOOP = 100
 
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
@@ -159,9 +159,9 @@ start:
    inc ZP_TWINKLE_COUNT
    lda ZP_TWINKLE_COUNT
    cmp #TWINKLE_STARS_PER_LOOP
-   beq @done_twinkling
+   beq @done_twinkling_for_now
    bra @twinkle
-@done_twinkling:
+@done_twinkling_for_now:
    stz ZP_TWINKLE_COUNT
    wai
    bra @twinkle

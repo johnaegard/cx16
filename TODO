@@ -3,10 +3,13 @@ X second layer
 X vsync-interrupt driven updates
 X 64x64 
 X vload macro
-
-o twinkle twinkle
-  o use main to do this?
+x twinkle twinkle
 o 16-way sprite
-  o 16-bit right shift 6 movement
-  o 16x16, ? colors
-o joystick controls
+  o 16 colors
+  o 16 rotations
+  o 16 x 16
+  o place in center
+o 16-way scrolling movement
+  o rotate ship
+  o scroll appropriately
+o fix bad tile bug in generator
