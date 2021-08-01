@@ -3,7 +3,8 @@ X second layer
 X vsync-interrupt driven updates
 X 64x64 
 X vload macro
-x twinkle twinkle
+X twinkle twinkle
+o verify can scroll across zero
 o 16-way sprite
   o 16 colors
   o 16 rotations

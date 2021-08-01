@@ -8,7 +8,7 @@
 
    jmp start
 
-TWINKLE_STARS_PER_LOOP = 100
+TWINKLE_STARS_PER_LOOP = 50
 
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
@@ -97,9 +97,10 @@ start:
    sta l0_move
 
    ; reset scroll
-   stz VERA_L0_hscroll_l 
+   lda #64
+   sta VERA_L0_hscroll_l 
    stz VERA_L0_hscroll_h
-   stz VERA_L0_vscroll_l 
+   sta VERA_L0_vscroll_l 
    stz VERA_L0_vscroll_h
 
    ; reenable display
