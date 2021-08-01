@@ -1,11 +1,12 @@
 X scroll horizontally / verticallly and verify that flipping happens smoothly
 X second layer
 X vsync-interrupt driven updates
-* 64x64 
-* vload macro
+X 64x64 
+X vload macro
+
 o twinkle twinkle
   o use main to do this?
 o 16-way sprite
-  o 16-bit right shift 5 movement
+  o 16-bit right shift 6 movement
   o 16x16, ? colors
 o joystick controls
