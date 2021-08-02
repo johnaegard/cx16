@@ -8,16 +8,17 @@
 
    jmp start
 
-TWINKLE_STARS_PER_LOOP = 50
+TWINKLE_STARS_PER_LOOP = 200
 
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
 
 VRAM_layer0_map              = $00000
-VRAM_layer0_map_color_base   = $00001
+VRAM_layer0_map_color_base   = VRAM_layer0_map + 1
 VRAM_layer1_map              = $02000
-VRAM_layer1_map_color_base   = $02001
+VRAM_layer1_map_color_base   = VRAM_layer1_map + 1
 VRAM_tiles                   = $04000
+VRAM_fighter_sprite_base     = $04800
 
 ZP_TWINKLE_COORD_L = ZP_PTR_1
 ZP_TWINKLE_COORD_H = ZP_PTR_1 + 1
@@ -30,7 +31,7 @@ ZP_TWINKLE_COUNT = ZP_PTR_3
 ; 320x200
 VERA_pixel_scale = $40
 ; enable both layers + sprites
-VERA_mode = %00110001
+VERA_mode = %01110001
 ; 64 x 64 tile map, 16 color mode, 1bpp
 VERA_tile_config = %01010000
 ; USE CHANNEL 0 for input
@@ -51,9 +52,27 @@ tilemap1_filename:
 end_tilemap1_filename:
 TILEMAP1_FILENAME_LENGTH = end_tilemap1_filename - tilemap1_filename
 
-default_irq_vector: .addr 0
+fighter_filename:
+.byte "fighter.bin"
+end_fighter_filename:
+FIGHTER_FILENAME_LENGTH = end_fighter_filename - fighter_filename
+
+; starmap motion
 l0_move: .byte 0
 L0_DELAY = 2
+MAP_MAX_COORD = 511
+
+; sprite configs 
+BPP4_MASK      = %01111111
+FIGHTER_X      = 144
+FIGHTER_Y      = 104
+SPRITE_Z3      = $0C
+SPRITE_VFLIP   = $02
+SPRITE_HFLIP   = $01
+SPRITE_16x16   = %01010000
+SPRITE_COLMASK_Z3_NOFLIP = %11111100
+
+default_irq_vector: .addr 0
 
 start:
    ; channel select
@@ -87,21 +106,43 @@ start:
    sta VERA_L0_tilebase
    sta VERA_L1_tilebase
 
-   ; load tile definitions to VRAM
-   VRAM_LOAD_FILE tiles_filename, TILES_FILENAME_LENGTH, VRAM_tiles
+   ; load bins to VRAM
+   VRAM_LOAD_FILE tiles_filename,    TILES_FILENAME_LENGTH,    VRAM_tiles
    VRAM_LOAD_FILE tilemap0_filename, TILEMAP0_FILENAME_LENGTH, VRAM_layer0_map
    VRAM_LOAD_FILE tilemap1_filename, TILEMAP1_FILENAME_LENGTH, VRAM_layer1_map
+   VRAM_LOAD_FILE fighter_filename,  FIGHTER_FILENAME_LENGTH,  VRAM_fighter_sprite_base
 
    ; initialize parallax counter
    lda #L0_DELAY
    sta l0_move
 
    ; reset scroll
-   lda #64
-   sta VERA_L0_hscroll_l 
+   stz VERA_L0_hscroll_l 
    stz VERA_L0_hscroll_h
-   sta VERA_L0_vscroll_l 
+   stz VERA_L0_vscroll_l 
    stz VERA_L0_vscroll_h
+
+   ; light up the sprite
+   VERA_SET_ADDR VRAM_sprattr, 1
+   ; set sprite frame address
+   lda #<(VRAM_fighter_sprite_base >> 5)
+   sta VERA_data0
+   lda #>((VRAM_fighter_sprite_base >> 5) & BPP4_MASK)
+   sta VERA_data0
+
+   ; position
+   lda #<FIGHTER_X
+   sta VERA_data0
+   lda #>FIGHTER_X
+   sta VERA_data0
+   lda #<FIGHTER_Y
+   sta VERA_data0
+   lda #>FIGHTER_Y
+   sta VERA_data0
+   lda #(SPRITE_COLMASK_Z3_NOFLIP)
+   sta VERA_data0
+   lda #(SPRITE_16x16)
+   sta VERA_data0
 
    ; reenable display
    lda #VERA_mode
@@ -142,8 +183,6 @@ start:
    lsr
    lsr
    lsr
-;   sty ZP_TWINKLE_COLOR
-;   eor ZP_TWINKLE_COLOR
    and #7
    sta ZP_TWINKLE_COLOR
    
