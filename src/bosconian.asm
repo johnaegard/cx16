@@ -8,7 +8,7 @@
 
    jmp start
 
-TWINKLE_STARS_PER_LOOP = 200
+TWINKLE_STARS_PER_LOOP = 100
 
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
@@ -53,7 +53,7 @@ end_tilemap1_filename:
 TILEMAP1_FILENAME_LENGTH = end_tilemap1_filename - tilemap1_filename
 
 fighter_filename:
-.byte "fighter.bin"
+.byte "whtsq.bin"
 end_fighter_filename:
 FIGHTER_FILENAME_LENGTH = end_fighter_filename - fighter_filename
 
@@ -127,7 +127,8 @@ start:
    ; set sprite frame address
    lda #<(VRAM_fighter_sprite_base >> 5)
    sta VERA_data0
-   lda #>((VRAM_fighter_sprite_base >> 5) & BPP4_MASK)
+   lda #>(VRAM_fighter_sprite_base >> 5)
+   and #BPP4_MASK
    sta VERA_data0
 
    ; position
@@ -215,12 +216,12 @@ custom_irq_handler:
    lda VERA_L1_hscroll_l
    clc
    adc #1
-   sta VERA_L1_hscroll_l
-   sta VERA_L1_vscroll_l
+   ; sta VERA_L1_hscroll_l
+   ; sta VERA_L1_vscroll_l
    lda VERA_L1_hscroll_h
    adc #0
-   sta VERA_L1_hscroll_h
-   sta VERA_L1_vscroll_h
+   ; sta VERA_L1_hscroll_h
+   ; sta VERA_L1_vscroll_h
 
    ; handle parallax delay
    dec l0_move
@@ -230,12 +231,12 @@ custom_irq_handler:
    lda VERA_L0_hscroll_l
    clc
    adc #1
-   sta VERA_L0_hscroll_l
-   sta VERA_L0_vscroll_l
+   ; sta VERA_L0_hscroll_l
+   ; sta VERA_L0_vscroll_l
    lda VERA_L0_hscroll_h
    adc #0
-   sta VERA_L0_hscroll_h
-   sta VERA_L0_vscroll_h
+   ; sta VERA_L0_hscroll_h
+   ; sta VERA_L0_vscroll_h
 
    ; reset parallax counter
    lda #L0_DELAY

@@ -32,10 +32,12 @@ def make_map(blank_tile_rate):
 
 l0_buffer = make_map(BLANK_TILE_RATE_L0)
 f = open("MAP0.BIN", "wb")
+f.write(bytearray([0,0]))
 f.write(bytearray(l0_buffer))
 f.close()
 
 l1_buffer = make_map(BLANK_TILE_RATE_L1)
 f = open("MAP1.BIN", "wb")
+f.write(bytearray([0,0]))
 f.write(bytearray(l1_buffer))
 f.close()
