@@ -8,7 +8,7 @@
 
    jmp start
 
-TWINKLE_STARS_PER_LOOP = 100
+TWINKLE_STARS_PER_LOOP = 255
 
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
@@ -165,9 +165,9 @@ start:
    sta VERA_ien
    cli ; enable IRQ now that vector is properly set
 
-
+@twinkle_reset:
    stz ZP_TWINKLE_COUNT
-@twinkle:
+@twinkle_loop:
    jsr ENTROPY_GET
    ; use (a concat x) entropy for 14-bit sparkle coord covering both tile maps and place it in ZP
    stx ZP_TWINKLE_COORD_L
@@ -184,6 +184,8 @@ start:
    lsr
    lsr
    lsr
+   sty ZP_TWINKLE_COLOR
+   eor ZP_TWINKLE_COLOR
    and #7
    sta ZP_TWINKLE_COLOR
    
@@ -194,6 +196,8 @@ start:
    lda ZP_TWINKLE_COORD_H
    adc #>VRAM_layer0_map_color_base
    sta VERA_addr_high
+   stz VERA_addr_bank
+   
    lda ZP_TWINKLE_COLOR
    sta VERA_data0
 
@@ -201,11 +205,10 @@ start:
    lda ZP_TWINKLE_COUNT
    cmp #TWINKLE_STARS_PER_LOOP
    beq @done_twinkling_for_now
-   bra @twinkle
+   bra @twinkle_loop
 @done_twinkling_for_now:
-   stz ZP_TWINKLE_COUNT
    wai
-   bra @twinkle
+   bra @twinkle_reset
 
 custom_irq_handler:
    lda VERA_isr
@@ -216,12 +219,12 @@ custom_irq_handler:
    lda VERA_L1_hscroll_l
    clc
    adc #1
-   ; sta VERA_L1_hscroll_l
-   ; sta VERA_L1_vscroll_l
+   sta VERA_L1_hscroll_l
+   sta VERA_L1_vscroll_l
    lda VERA_L1_hscroll_h
    adc #0
-   ; sta VERA_L1_hscroll_h
-   ; sta VERA_L1_vscroll_h
+   sta VERA_L1_hscroll_h
+   sta VERA_L1_vscroll_h
 
    ; handle parallax delay
    dec l0_move
@@ -231,12 +234,12 @@ custom_irq_handler:
    lda VERA_L0_hscroll_l
    clc
    adc #1
-   ; sta VERA_L0_hscroll_l
-   ; sta VERA_L0_vscroll_l
+   sta VERA_L0_hscroll_l
+   sta VERA_L0_vscroll_l
    lda VERA_L0_hscroll_h
    adc #0
-   ; sta VERA_L0_hscroll_h
-   ; sta VERA_L0_vscroll_h
+   sta VERA_L0_hscroll_h
+   sta VERA_L0_vscroll_h
 
    ; reset parallax counter
    lda #L0_DELAY
