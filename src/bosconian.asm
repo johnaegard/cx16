@@ -30,7 +30,7 @@ ZP_TWINKLE_COUNT = ZP_PTR_3
 ;
 ; 320x200
 VERA_pixel_scale = $40
-; enable both layers + sprites
+; enable both layers + sprites + vga
 VERA_mode = %01110001
 ; 64 x 64 tile map, 16 color mode, 1bpp
 VERA_tile_config = %01010000
