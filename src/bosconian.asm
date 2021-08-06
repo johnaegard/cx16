@@ -8,7 +8,7 @@
 
    jmp start
 
-TWINKLE_STARS_PER_LOOP = 255
+TWINKLE_STARS_PER_LOOP = 64
 
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
@@ -53,9 +53,12 @@ end_tilemap1_filename:
 TILEMAP1_FILENAME_LENGTH = end_tilemap1_filename - tilemap1_filename
 
 fighter_filename:
-.byte "whtsq.bin"
+.byte "sticks.bin"
 end_fighter_filename:
 FIGHTER_FILENAME_LENGTH = end_fighter_filename - fighter_filename
+
+sprite_frame:
+.byte 0
 
 ; starmap motion
 l0_move: .byte 0
