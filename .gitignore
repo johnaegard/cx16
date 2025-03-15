@@ -4,3 +4,15 @@
 *.swp
 .vscode/**
 .ipynb_checkpoints/**
+
+nohup.out
+*.swo
+*.log
+*.BAK
+*.o
+a.out
+*.sym
+*.profile
+bin/*
+.env
+.aider*
