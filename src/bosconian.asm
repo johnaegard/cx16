@@ -8,7 +8,7 @@
 
    jmp start
 
-TWINKLE_STARS_PER_LOOP = 64
+TWINKLE_STARS_PER_LOOP = 255
 
 ; VRAM Addresses
 ; https://docs.google.com/spreadsheets/d/1n0DPc4DzMAWshT9GZvgzJAs2BIdy6EfK9pPbRWDD-3A/edit?usp=sharing
@@ -62,7 +62,7 @@ sprite_frame:
 
 ; starmap motion
 l0_move: .byte 0
-L0_DELAY = 2
+L0_DELAY = 3
 MAP_MAX_COORD = 511
 
 ; sprite configs 
@@ -189,7 +189,7 @@ start:
    lsr
    sty ZP_TWINKLE_COLOR
    eor ZP_TWINKLE_COLOR
-   and #7
+   and #15
    sta ZP_TWINKLE_COLOR
    
    lda ZP_TWINKLE_COORD_L
@@ -200,7 +200,7 @@ start:
    adc #>VRAM_layer0_map_color_base
    sta VERA_addr_high
    stz VERA_addr_bank
-   
+
    lda ZP_TWINKLE_COLOR
    sta VERA_data0
 

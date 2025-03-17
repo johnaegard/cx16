@@ -8,7 +8,7 @@ __CX16__ = 1
 .endif
 
 ; X16 addresses, values, and macros
-; Accurate for ROM release R38
+; Accurate for ROM release R38 
 
 SD_DEVICE   = 8 ; also host file system on emulator if no SD image mounted
 DISK_DEVICE = SD_DEVICE ; change if to be loaded off IEC device
